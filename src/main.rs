@@ -12,6 +12,7 @@ mod count_cache;
 
 use std::sync::{Arc, RwLock};
 use rocket::State;
+use rocket::fairing::AdHoc;
 use analytics::Analytics;
 use count_cache::CountCache;
 
@@ -75,6 +76,12 @@ fn main() {
     let cache = Arc::new(RwLock::new(CountCache::new()));
 
     rocket::ignite()
+        .attach(AdHoc::on_response("CORS", |_, rsp| {
+            rsp.set_raw_header("Access-Control-Allow-Origin", "*");
+            rsp.set_raw_header("Access-Control-Allow-Methods", "GET");
+            rsp.set_raw_header("Access-Control-Max-Age", "3600");
+            rsp.set_raw_header("Access-Control-Allow-Headers", "Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization");
+        }))
         .manage(service)
         .manage(cache)
         .mount("/", routes![index, get_pageview])
