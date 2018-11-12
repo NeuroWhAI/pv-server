@@ -1,6 +1,6 @@
 use hyper::status::StatusCode;
 use oauth2::{self, ServiceAccountAccess};
-use analytics3::Analytics as YupAnalytics;
+use analytics3::Analytics as GoogleAnalytics;
 use regex::{self};
 
 
@@ -10,7 +10,7 @@ fn make_hyper_client() -> hyper::Client {
 
 
 pub struct Analytics {
-    hub: YupAnalytics<hyper::Client, ServiceAccountAccess<hyper::Client>>,
+    hub: GoogleAnalytics<hyper::Client, ServiceAccountAccess<hyper::Client>>,
 }
 
 impl Analytics {
@@ -18,7 +18,7 @@ impl Analytics {
         let path = String::from(path);
         let service_key = oauth2::service_account_key_from_file(&path).unwrap();
         let service_access = ServiceAccountAccess::new(service_key, make_hyper_client());
-        let hub = YupAnalytics::new(make_hyper_client(), service_access);
+        let hub = GoogleAnalytics::new(make_hyper_client(), service_access);
         
         Analytics {
             hub: hub,
