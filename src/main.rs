@@ -13,7 +13,7 @@ mod count_cache;
 use std::sync::{Arc, RwLock};
 use rocket::State;
 use rocket::fairing::AdHoc;
-use analytics::Analytics;
+use analytics::{Analytics, AnalyticsKey};
 use count_cache::CountCache;
 
 
@@ -27,7 +27,7 @@ fn index() -> &'static str {
 
 #[get("/pv/<ids>/<page_id>")]
 fn get_pageview(ids: String, page_id: String,
-    service: State<Analytics>, cache: State<LockCountCache>) -> String
+    key: State<AnalyticsKey>, cache: State<LockCountCache>) -> String
 {
     // 캐시에 유효한 데이터가 있으면 바로 반환.
     {
@@ -39,6 +39,7 @@ fn get_pageview(ids: String, page_id: String,
     }
 
     // API 호출.
+    let service = Analytics::new(&key);
     let result = service.get_pageview(&ids, &page_id);
 
     match result {
@@ -72,7 +73,7 @@ fn get_pageview(ids: String, page_id: String,
 
 
 fn main() {
-    let service = Analytics::new("key.json");
+    let key = AnalyticsKey::new("key.json");
     let cache = Arc::new(RwLock::new(CountCache::new()));
 
     rocket::ignite()
@@ -82,7 +83,7 @@ fn main() {
             rsp.set_raw_header("Access-Control-Max-Age", "3600");
             rsp.set_raw_header("Access-Control-Allow-Headers", "Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization");
         }))
-        .manage(service)
+        .manage(key)
         .manage(cache)
         .mount("/", routes![index, get_pageview])
         .launch();

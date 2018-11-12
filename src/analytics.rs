@@ -1,5 +1,5 @@
 use hyper::status::StatusCode;
-use oauth2::{self, ServiceAccountAccess};
+use oauth2::{self, ServiceAccountAccess, ServiceAccountKey};
 use analytics3::Analytics as GoogleAnalytics;
 use regex::{self};
 
@@ -9,15 +9,29 @@ fn make_hyper_client() -> hyper::Client {
 }
 
 
+pub struct AnalyticsKey {
+    service_key: ServiceAccountKey,
+}
+
+impl AnalyticsKey {
+    pub fn new(path: &str) -> Self {
+        let path = String::from(path);
+        let service_key = oauth2::service_account_key_from_file(&path).unwrap();
+        
+        AnalyticsKey {
+            service_key: service_key,
+        }
+    }
+}
+
+
 pub struct Analytics {
     hub: GoogleAnalytics<hyper::Client, ServiceAccountAccess<hyper::Client>>,
 }
 
 impl Analytics {
-    pub fn new(path: &str) -> Self {
-        let path = String::from(path);
-        let service_key = oauth2::service_account_key_from_file(&path).unwrap();
-        let service_access = ServiceAccountAccess::new(service_key, make_hyper_client());
+    pub fn new(key: &AnalyticsKey) -> Self {
+        let service_access = ServiceAccountAccess::new(key.service_key.clone(), make_hyper_client());
         let hub = GoogleAnalytics::new(make_hyper_client(), service_access);
         
         Analytics {
@@ -54,6 +68,3 @@ impl Analytics {
         }
     }
 }
-
-unsafe impl Send for Analytics {}
-unsafe impl Sync for Analytics {}
