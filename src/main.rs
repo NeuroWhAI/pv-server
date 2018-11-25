@@ -73,7 +73,12 @@ fn get_pageview(ids: String, page_id: String,
     }
 }
 
-#[get("/<file..>")]
+#[get("/robots.txt")]
+fn get_robots() -> &'static str {
+    "User-agent: *\nDisallow: /"
+}
+
+#[get("/static/<file..>")]
 fn files(file: PathBuf) -> Option<NamedFile> {
     NamedFile::open(Path::new("static/").join(file)).ok()
 }
@@ -92,7 +97,6 @@ fn main() {
         }))
         .manage(key)
         .manage(cache)
-        .mount("/", routes![index, get_pageview])
-        .mount("/", routes![files])
+        .mount("/", routes![index, get_pageview, get_robots, files])
         .launch();
 }
