@@ -11,8 +11,10 @@ mod analytics;
 mod count_cache;
 
 use std::sync::{Arc, RwLock};
+use std::path::{Path, PathBuf};
 use rocket::State;
 use rocket::fairing::AdHoc;
+use rocket::response::NamedFile;
 use analytics::{Analytics, AnalyticsKey};
 use count_cache::CountCache;
 
@@ -71,6 +73,11 @@ fn get_pageview(ids: String, page_id: String,
     }
 }
 
+#[get("/<file..>")]
+fn files(file: PathBuf) -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/").join(file)).ok()
+}
+
 
 fn main() {
     let key = AnalyticsKey::new("key.json");
@@ -86,5 +93,6 @@ fn main() {
         .manage(key)
         .manage(cache)
         .mount("/", routes![index, get_pageview])
+        .mount("/", routes![files])
         .launch();
 }
