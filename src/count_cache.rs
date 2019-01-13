@@ -42,32 +42,24 @@ impl CountCache {
     }
     
     pub fn update(&mut self, ids: &String, page_id: &String, cnt: u64) {
-        if self.cache.contains_key(ids) {
-            let sub_cache = self.cache.get_mut(ids).unwrap();
-            if sub_cache.contains_key(page_id) {
-                let data = sub_cache.get_mut(page_id).unwrap();
-                data.update(cnt);
-            }
-            else {
+        // 캐시가 비정상적으로 커질 가능성 배제.
+        if self.cache.len() >= self.max_cache_len {
+            self.cache.clear();
+        }
+        
+        let max_sub_cache_len = self.max_sub_cache_len;
+        self.cache.entry(ids.clone())
+            .and_modify(|sub_cache| {
                 // 캐시가 비정상적으로 커질 가능성 배제.
-                if sub_cache.len() >= self.max_sub_cache_len {
+                if sub_cache.len() >= max_sub_cache_len {
                     sub_cache.clear();
                 }
-                
-                sub_cache.insert(page_id.clone(), CacheData::new(cnt));
-            }
-        }
-        else {
-            let mut sub_cache = HashMap::new();
-            sub_cache.insert(page_id.clone(), CacheData::new(cnt));
-            
-            // 캐시가 비정상적으로 커질 가능성 배제.
-            if self.cache.len() >= self.max_cache_len {
-                self.cache.clear();
-            }
-            
-            self.cache.insert(ids.clone(), sub_cache);
-        }
+            })
+            .or_insert(HashMap::new())
+            // sub_cache
+            .entry(page_id.clone())
+            .and_modify(|data| data.update(cnt))
+            .or_insert(CacheData::new(cnt));
     }
     
     pub fn get(&self, ids: &String, page_id: &String, check_time: bool) -> Option<u64> {
