@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["NeuroWhAI <tlsehdgus321@naver.com>"]
 
 [dependencies]
-rocket = "0.4.0"
+rocket = "0.4.2"
 google-analytics3 = "*"
 hyper = "^0.10"
 hyper-rustls = "^0.6"
