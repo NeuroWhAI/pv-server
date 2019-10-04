@@ -1,12 +1,12 @@
-[global]
-address = "127.0.0.1"
-
 [development]
+address = "127.0.0.1"
 port = 8042
 log = "normal"
 
 [staging]
+address = "127.0.0.1"
 log = "normal"
 
 [production]
+address = "0.0.0.0"
 log = "critical"
